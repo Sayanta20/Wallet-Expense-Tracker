@@ -6,6 +6,7 @@ import { API_URL } from "@/constants/api";
 
 //const API_URL="http://localhost:5201/api";
 //const API_URL="https://wallet-api-68aq.onrender.com/api";
+
 export const useTransactions=(userId)=>{
     const [transactions,setTransactions]=useState([]);
     const [summary, setSummary]= useState({
@@ -49,6 +50,33 @@ export const useTransactions=(userId)=>{
         }
     }, [fetchTransactions,fetchSummary, userId]);
 
+    const addTransaction = async (transactionData) => {
+  try {
+    const response = await fetch(`${API_URL}/transactions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(transactionData),
+    });
+
+    if (!response.ok) throw new Error("Failed to add transaction");
+
+    const newTransaction = await response.json();
+
+    // 🔥 Instantly update recent transactions UI
+    setTransactions(prev => [newTransaction, ...prev]);
+
+    // 🔄 Update summary values
+    fetchSummary();
+
+    return newTransaction;
+
+  } catch (error) {
+    console.error("Error adding transaction:", error);
+    Alert.alert("Error", error.message);
+  }
+};
+
+
     const deleteTransaction= async  (id) => {
         try{
             const response= await fetch(`${API_URL}/transactions/${id}`, {method: "DELETE"});
@@ -60,5 +88,5 @@ export const useTransactions=(userId)=>{
             Alert.alert("Error", error.message);
         }
     };
-    return {transactions, summary, isLoading, loadData, deleteTransaction}
+    return {transactions, summary, isLoading, loadData, deleteTransaction, addTransaction}
 };
